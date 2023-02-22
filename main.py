@@ -86,7 +86,8 @@ def main():
         if flg == 0:
             frame_out = frame.copy()
         if flg == 1:
-            frame_out = face_position(frame)
+            frame_in = frame.copy()
+            frame_out = face_position(frame_in)
         if flg == 2:
             frame_out = back_subtract(frame, th)
         if flg == 3:
