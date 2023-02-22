@@ -1,0 +1,10 @@
+# 不必要なファイルやフォルダをgitの管理下から外す
+
+*.mp4
+test.mp4
+git_practice/
+haarcascades/
+learned-models/
+.DS_Store
+.ipynb_checkpoints/
+.jupyter/
