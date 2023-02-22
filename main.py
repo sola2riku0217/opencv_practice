@@ -37,6 +37,41 @@ def frame_subtract(image,image_pre):
    
     return dst
 
+## オプティカルフロー
+# params for ShiTomasi corner detection
+feature_params = dict( maxCorners = 100,
+                       qualityLevel = 0.3,
+                       minDistance = 7,
+                       blockSize = 7 )
+
+# Parameters for lucas kanade optical flow
+lk_params = dict( winSize  = (15,15),
+                  maxLevel = 2,
+                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+
+def opticalFlow(image,image_pre):
+    image2 = image.copy()
+    gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+    gray_pre = cv2.cvtColor(image_pre,cv2.COLOR_BGR2GRAY)
+    p0 = cv2.goodFeaturesToTrack(gray_pre,mask=None,**feature_params)
+    mask = np.zeros_like(image2)
+    
+    p1,st,err = cv2.calcOpticalFlowPyrLK(gray_pre,gray,p0,None,**lk_params)
+    good_new = p1[st == 1]
+    good_old = p0[st == 1]
+    
+    for i,(new,old) in enumerate(zip(good_new,good_old)):
+        a,b = new.ravel()
+        c,d = old.ravel()
+        e = a - (c - a) * 2
+        f = b - (d - b) * 2
+       
+        mask = cv2.arrowedLine(mask,(int(a),int(b)),(int(e),int(f)),(255,255,255),2)
+        image2 = cv2.circle(image2,(int(a),int(b)),5,(255,0,0),-1)
+        img = cv2.add(image2,mask)
+    return img
+
+
 ## トラックバーのコールバック関数
 def trackbar(val):
     print("trackber1 : ",val)
@@ -93,6 +128,9 @@ def main():
         if flg == 3:
             frame_out = frame_subtract(frame, frame_pre) 
             frame_pre = frame.copy()
+        if flg == 4:
+            frame_out = opticalFlow(frame, frame_pre) 
+            frame_pre = frame.copy()
                
         cv2.imshow("window1", frame)
         cv2.imshow("window2", frame_out)
@@ -108,6 +146,9 @@ def main():
         if k == ord("3"):
             frame_pre = frame.copy()
             flg = 3
+        if k == ord("4"):
+            frame_pre = frame.copy()
+            flg = 4
 
 
 if __name__ == "__main__":
