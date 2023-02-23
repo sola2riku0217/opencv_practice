@@ -8,3 +8,4 @@ learned-models/
 .DS_Store
 .ipynb_checkpoints/
 .jupyter/
+.gitignore
