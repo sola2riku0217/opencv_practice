@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 import dlib
+import particlefilter as pf
 
 CASCADE_PATH = "./haarcascades/"
 CASCADE = cv2.CascadeClassifier(CASCADE_PATH + "haarcascade_frontalface_default.xml")
@@ -34,7 +35,6 @@ def frame_subtract(image,image_pre):
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     gray_pre = cv2.cvtColor(image_pre,cv2.COLOR_BGR2GRAY)
     dst = cv2.absdiff(gray,gray_pre)
-   
     return dst
 
 ## オプティカルフロー
@@ -98,7 +98,9 @@ def main():
         print("コマンドライン引数を確認してください")
     
     cv2.namedWindow("window1")
+    cv2.moveWindow("window1",0,0)
     cv2.namedWindow("window2")
+    cv2.moveWindow("window2",0,300)
     ##############################
     # GUIの設定
     #　　　　　・　トラックバー
@@ -112,6 +114,7 @@ def main():
     # 2キー　：　動的背景差分
     # 3キー　：　フレーム間差分
     # 4キー　：　オプティカルフロー
+    # 5キー　：　パーティクルフィルター
     ###############################   
     while(cap.isOpened()):
         ret, frame = cap.read()
@@ -131,7 +134,12 @@ def main():
         if flg == 4:
             frame_out = opticalFlow(frame, frame_pre) 
             frame_pre = frame.copy()
+        if flg == 5 :
+            ## 関数実行
+            frame_out,pos = pf.particle_filter(frame,pos)
+            
                
+                
         cv2.imshow("window1", frame)
         cv2.imshow("window2", frame_out)
         
@@ -149,6 +157,9 @@ def main():
         if k == ord("4"):
             frame_pre = frame.copy()
             flg = 4
+        if k == ord("5"):
+            pos = pf.initialize(frame,N=300)
+            flg = 5
 
 
 if __name__ == "__main__":
