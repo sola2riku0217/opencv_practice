@@ -115,11 +115,18 @@ def main():
     # 3キー　：　フレーム間差分
     # 4キー　：　オプティカルフロー
     # 5キー　：　パーティクルフィルター
+    # 6キー　：　エッジ検出
+    # 7キー　：　残像
+    # 8キー　：　幽体離脱
+    # 9キー　：　前景抽出
     ###############################   
+    frame_pre = None
+    frame_out = None
+    filter = 0.1
     while(cap.isOpened()):
+        
         ret, frame = cap.read()
         th = cv2.getTrackbarPos("trackbar","window2")
-        
         
         if flg == 0:
             frame_out = frame.copy()
@@ -129,21 +136,26 @@ def main():
         if flg == 2:
             frame_out = back_subtract(frame, th)
         if flg == 3:
-            frame_out = frame_subtract(frame, frame_pre) 
-            frame_pre = frame.copy()
+            frame_out = frame_subtract(frame, frame_pre)       
         if flg == 4:
-            frame_out = opticalFlow(frame, frame_pre) 
-            frame_pre = frame.copy()
+            frame_out = opticalFlow(frame, frame_pre)  
         if flg == 5 :
             ## 関数実行
             frame_out,pos = pf.particle_filter(frame,pos)
+        if flg == 6 :
+            frame_out = cv2.Canny(frame,threshold1=100,threshold2=200)
+        if flg == 7 :
+            th = cv2.getTrackbarPos("trackbar","window2") * 0.1
+            bufimg = cv2.addWeighted(src1=bufimg,alpha=1-th,src2=frame_pre,beta=th,gamma=0)
+            frame_out = bufimg.copy()
+        if flg == 8 :
+            frame_out = cv2.addWeighted(bufimg, 0.5, frame,0.5,0) 
             
-               
-                
         cv2.imshow("window1", frame)
         cv2.imshow("window2", frame_out)
         
    
+        frame_pre = frame.copy()
         k = cv2.waitKey(1)
         if k == ord("q"):
             break
@@ -160,6 +172,14 @@ def main():
         if k == ord("5"):
             pos = pf.initialize(frame,N=300)
             flg = 5
+        if k == ord("6"):
+            flg = 6
+        if k == ord("7"):
+            bufimg = frame.copy()
+            flg = 7
+        if k == ord("8"):
+            bufimg = frame.copy()
+            flg = 8
 
 
 if __name__ == "__main__":

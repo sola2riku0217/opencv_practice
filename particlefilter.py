@@ -15,21 +15,6 @@ def max_moment_point(mask):
     
     return center[max_index]
 
-## 尤度を算出する
-def calc_likelihood(x,y,img,w=30,h=30):
-    x1,y1 = max(0,x-w/2), max(0,y-h/2)
-    x2,y2 = min(img.shape[1], x+w/2), min(img.shape[0],y+h/2)
-    x1,y1,x2,y2 = int(x1), int(y1), int(x2), int(y2)
-    roi = img[y1:y2,x1:x2]
-    
-    ## 矩形領域中に含まれる追跡対象の色の存在率を尤度として計算する
-    count = roi[is_target(roi)].size
-    if count > 0:
-        result = float(count) / img.size
-    else:
-        result = 0.0001
-    return result
-
 def initialize(image,N):
     ## HSVに変換してS,V成分を２値化する
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -61,7 +46,22 @@ def predict_position(ps, var = 13.0):
     ps[:,0] += np.random.randn((ps.shape[0])) * var
     ps[:,1] += np.random.randn((ps.shape[0])) * var
 
-
+## 尤度を算出する
+def calc_likelihood(x,y,img,w=30,h=30):
+    x1,y1 = max(0,x-w/2), max(0,y-h/2)
+    x2,y2 = min(img.shape[1], x+w/2), min(img.shape[0],y+h/2)
+    x1,y1,x2,y2 = int(x1), int(y1), int(x2), int(y2)
+    roi = img[y1:y2,x1:x2]
+    
+    ## 矩形領域中に含まれる追跡対象の色の存在率を尤度として計算する
+    count = roi[is_target(roi)].size
+    if count > 0:
+        result = float(count) / img.size
+    else:
+        result = 0.0001
+    return result
+    
+    
 def calc_weight(ps,img):
     for i in range(ps.shape[0]):
         ps[i][2] = calc_likelihood(ps[i,0],ps[i,1],img)
@@ -89,9 +89,6 @@ def particle_filter(image,pos):
     h[(s==0)|(v==0)] = 100
     
     # パーティクルフィルタ実装
-    # global pos
-    # if pos is None:
-    #     pos = initialize(h,N=300)
     pos = resampling(pos) ## リサンプリング
     predict_position(pos) ## 推定
     x,y = observer(pos,h) ## 観測
