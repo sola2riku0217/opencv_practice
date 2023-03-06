@@ -5,6 +5,7 @@ import sys
 import os
 import dlib
 import particlefilter as pf
+import backcutdeep as bcd
 
 CASCADE_PATH = "./haarcascades/"
 CASCADE = cv2.CascadeClassifier(CASCADE_PATH + "haarcascade_frontalface_default.xml")
@@ -119,6 +120,7 @@ def main():
     # 7キー　：　残像
     # 8キー　：　幽体離脱
     # 9キー　：　前景抽出
+    # 0キー　：　
     ###############################   
     frame_pre = None
     frame_out = None
@@ -140,7 +142,6 @@ def main():
         if flg == 4:
             frame_out = opticalFlow(frame, frame_pre)  
         if flg == 5 :
-            ## 関数実行
             frame_out,pos = pf.particle_filter(frame,pos)
         if flg == 6 :
             frame_out = cv2.Canny(frame,threshold1=100,threshold2=200)
@@ -150,6 +151,8 @@ def main():
             frame_out = bufimg.copy()
         if flg == 8 :
             frame_out = cv2.addWeighted(bufimg, 0.5, frame,0.5,0) 
+        if flg == 9:
+            frame_out = bcd.backcut(frame)
             
         cv2.imshow("window1", frame)
         cv2.imshow("window2", frame_out)
@@ -180,6 +183,8 @@ def main():
         if k == ord("8"):
             bufimg = frame.copy()
             flg = 8
+        if k == ord("9"):
+            flg = 9
 
 
 if __name__ == "__main__":
